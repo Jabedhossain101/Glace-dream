@@ -1,0 +1,27 @@
+export const products = [
+  {
+    id: 1,
+    name: 'Premium Wireless Earbuds',
+    category: 'Electronics',
+    price: 1299,
+    oldPrice: 1999,
+    discount: '35%',
+    image: '/earbuds.jpg', // আপনার ইমেজের পাথ দিন
+    description:
+      'হাই-কোয়ালিটি সাউন্ড এবং নয়েজ ক্যানসেলেশনসহ প্রিমিয়াম এয়ারবাডস।',
+    features: ['Noise Cancelling', 'Touch Control', '24h Battery'],
+  },
+  {
+    id: 2,
+    name: 'Smart Watch Pro',
+    category: 'Electronics',
+    price: 2499,
+    oldPrice: 3499,
+    discount: '29%',
+    image: '/smartwatch.jpg',
+    description:
+      'স্মার্ট ওয়াচ যা আপনার ফিটনেস ট্র্যাক করে। হার্ট রেট মনিটর, স্লিপ ট্র্যাকিং এবং GPS সাপোর্ট।',
+    features: ['Heart Rate Monitor', 'GPS', 'Sleep Tracking', '7 Days Battery'],
+  },
+  // আরও প্রোডাক্ট এখানে যোগ করুন...
+];

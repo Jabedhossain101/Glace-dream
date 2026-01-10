@@ -1,13 +1,39 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { products } from '@/constants/products';
+// import { products } from '@/constants/products';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { useFavorites } from '@/context/FavoriteContext';
+import OrderModal from '@/components/OrderModal';
 
 export default function HomePage() {
-  const [selectedProduct, setSelectedProduct] = useState(products[1]);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { favorites, toggleFavorite } = useFavorites();
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        if (data.length > 0) setSelectedProduct(data[0]);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading shop...</div>;
+  }
+
+  if (!selectedProduct) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">No products available. Check back later!</div>;
+  }
 
   const isFavorite = favorites.some(item => item.id === selectedProduct.id);
 
@@ -33,7 +59,7 @@ export default function HomePage() {
           <img
             src={selectedProduct.image}
             alt={selectedProduct.name}
-            className="w-full h-[450px] object-contain mix-blend-multiply p-12"
+            className="w-full h-112.5 object-contain mix-blend-multiply p-12"
           />
         </div>
 
@@ -75,7 +101,10 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-4 pt-4">
-            <button className="flex-[1.5] bg-[#FF5A3D] text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-200 hover:bg-[#e84e32] transition">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex-[1.5] bg-[#FF5A3D] text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-200 hover:bg-[#e84e32] transition"
+            >
               <ShoppingCart className="w-5 h-5" /> অর্ডার করুন
             </button>
             <button className="flex-1 border-2 border-gray-100 py-4 rounded-xl font-bold text-lg text-[#1A1A1A] hover:bg-gray-50 transition">
@@ -142,6 +171,11 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      <OrderModal 
+        product={selectedProduct} 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </main>
   );
 }

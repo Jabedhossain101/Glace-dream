@@ -1,0 +1,19 @@
+[
+    {
+        "id": "1",
+        "createdAt": "2023-06-01T12:00:00Z",
+        "status": "pending",
+        "customer": {
+            "name": "John Doe",
+            "phone": "123-456-7890"
+        },
+        "items": [
+            {
+                "name": "Product 1",
+                "price": 100,
+                "quantity": 2
+            }
+        ],
+        "total": 200    
+    }
+]

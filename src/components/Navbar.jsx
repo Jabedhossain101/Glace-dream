@@ -1,10 +1,14 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import { ShoppingBag, Heart, Box } from 'lucide-react';
 import { useFavorites } from '@/context/FavoriteContext';
 import Link from 'next/link';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { favorites } = useFavorites();
+
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-20 py-4 bg-white border-b sticky top-0 z-50">

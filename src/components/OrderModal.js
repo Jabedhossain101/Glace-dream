@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
-export default function OrderModal({ product, isOpen, onClose }) {
+export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -25,10 +25,11 @@ export default function OrderModal({ product, isOpen, onClose }) {
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                image: product.image
+                image: product.image,
+                quantity: quantity
             }
         ],
-        total: product.price,
+        total: (product.price * quantity) + 60,
         status: 'pending'
       };
 
@@ -65,11 +66,14 @@ export default function OrderModal({ product, isOpen, onClose }) {
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Product Summary */}
-          <div className="flex gap-4 p-3 bg-indigo-50 rounded-xl mb-4">
-            <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-lg mix-blend-multiply" />
-            <div>
-                <p className="font-bold text-gray-800">{product.name}</p>
-                <p className="text-[#FF5A3D] font-black">৳{product.price}</p>
+          <div className="flex gap-4 p-4 bg-orange-50 rounded-2xl mb-6 border border-orange-100 items-start">
+            <img src={product.image} alt={product.name} className="w-20 h-20 object-contain bg-white rounded-xl p-2 border border-orange-100" />
+            <div className="flex-1">
+                <p className="font-bold text-gray-800 text-sm md:text-base line-clamp-2">{product.name}</p>
+                <div className="flex justify-between items-end mt-2">
+                    <p className="text-gray-500 text-sm">পরিমাণ: <span className="font-bold text-gray-800">{quantity}</span></p>
+                    <p className="text-[#FF5A3D] font-black text-lg md:text-xl">৳{(product.price * quantity).toLocaleString()}</p>
+                </div>
             </div>
           </div>
 
@@ -106,6 +110,22 @@ export default function OrderModal({ product, isOpen, onClose }) {
               value={formData.address}
               onChange={e => setFormData({ ...formData, address: e.target.value })}
             />
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+             <div className="flex justify-between text-sm text-gray-600">
+                <span>সাবটোটাল</span>
+                <span className="font-bold">৳{(product.price * quantity).toLocaleString()}</span>
+             </div>
+             <div className="flex justify-between text-sm text-gray-600">
+                <span>ডেলিভারি চার্জ</span>
+                <span className="font-bold">৳৬০</span>
+             </div>
+             <div className="h-px bg-gray-200 my-2"></div>
+             <div className="flex justify-between text-base font-black text-gray-800">
+                <span>সর্বমোট</span>
+                <span className="text-[#FF5A3D]">৳{(product.price * quantity + 60).toLocaleString()}</span>
+             </div>
           </div>
 
           <button

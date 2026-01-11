@@ -1,6 +1,6 @@
 'use client';
 import { useFavorites } from '@/context/FavoriteContext';
-import Navbar from '@/components/Navbar';
+// import Navbar from '@/components/Navbar';
 import { Heart, ShoppingCart, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,7 +9,8 @@ export default function FavoritesPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Navbar />
+      {/* <Navbar /> */}
+
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center gap-4 mb-10">

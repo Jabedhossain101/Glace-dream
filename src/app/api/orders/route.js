@@ -1,50 +1,49 @@
 
 import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/db';
+import Order from '@/models/Order';
 import fs from 'fs';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'src/data/orders.json');
-
-// Helper to read data
-const getOrders = () => {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      return [];
-    }
-    const fileContent = fs.readFileSync(dataFilePath, 'utf8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    return [];
-  }
-};
-
-// Helper to write data
-const saveOrders = (orders) => {
-  fs.writeFileSync(dataFilePath, JSON.stringify(orders, null, 2));
-};
-
 export async function GET() {
-  const orders = getOrders();
-  return NextResponse.json(orders);
+  try {
+    await dbConnect();
+    
+    // Auto-seed if empty
+    const count = await Order.countDocuments();
+    if (count === 0) {
+      console.log('Seeding orders...');
+      const filePath = path.join(process.cwd(), 'src/data/orders.json');
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const orders = JSON.parse(fileContent);
+        // Ensure data matches schema if needed, or rely on mongoose flexibility
+        // Removing 'id' if it conflicts with _id or let Mongoose handle it
+        await Order.insertMany(orders);
+        console.log('Orders seeded successfully');
+      }
+    }
+
+    const orders = await Order.find({}).sort({ createdAt: -1 });
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
   try {
+    await dbConnect();
     const body = await request.json();
-    const orders = getOrders();
     
-    const newOrder = {
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      status: 'pending', // pending, completed, cancelled
-      ...body
-    };
-
-    orders.push(newOrder);
-    saveOrders(orders);
+    // Status default is 'pending' in Schema
+    
+    const newOrder = await Order.create(body);
 
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
   }
 }

@@ -9,7 +9,6 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // If on login page, display only the children (the login form)
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
@@ -36,7 +35,7 @@ export default function AdminLayout({ children }) {
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <Link
+          <Link 
             href="/admin/overview"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${
                 pathname.includes('/overview') 

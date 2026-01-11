@@ -1,51 +1,50 @@
 
 import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/db';
+import Product from '@/models/Product';
 import fs from 'fs';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'src/data/products.json');
-
-// Helper to read data
-const getProducts = () => {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      return [];
-    }
-    const fileContent = fs.readFileSync(dataFilePath, 'utf8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    return [];
-  }
-};
-
-// Helper to write data
-const saveProducts = (products) => {
-  fs.writeFileSync(dataFilePath, JSON.stringify(products, null, 2));
-};
-
 export async function GET() {
-  const products = getProducts();
-  return NextResponse.json(products);
+  try {
+    await dbConnect();
+
+    // Auto-seed if empty
+    const count = await Product.countDocuments();
+    if (count === 0) {
+      console.log('Seeding products...');
+      const filePath = path.join(process.cwd(), 'src/data/products.json');
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const products = JSON.parse(fileContent);
+        // Clean up IDs if they conflict or let mongo handle it.
+        // Usually, mongo uses _id. If we want to keep integer IDs, we can, but usually better to let mongo generate _id.
+        // However, for simplicity, we just insert.
+        await Product.insertMany(products);
+        console.log('Products seeded successfully');
+      }
+    }
+
+    const products = await Product.find({});
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
   try {
+    await dbConnect();
     const body = await request.json();
-    const products = getProducts();
     
-    // Generate simple ID
-    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    // We don't need to manually generate ID, MongoDB does it.
     
-    const newProduct = {
-      id: newId,
-      ...body
-    };
-
-    products.push(newProduct);
-    saveProducts(products);
+    const newProduct = await Product.create(body);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }

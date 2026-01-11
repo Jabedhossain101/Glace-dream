@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,12 +34,24 @@ export default function OverviewPage() {
     const fetchOrders = async () => {
       try {
         const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        
         const data = await res.json();
-        setOrders(data);
-        processStats(data);
-        processChartData(data);
+        
+        if (Array.isArray(data)) {
+          setOrders(data);
+          processStats(data);
+          processChartData(data);
+        } else {
+          console.error('API returned non-array data:', data);
+          setOrders([]);
+          setStats({ totalRevenue: 0, totalOrders: 0, pendingOrders: 0, completedOrders: 0 });
+          setChartData([]);
+        }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
+        setOrders([]);
+        // Keep default empty stats
       } finally {
         setLoading(false);
       }

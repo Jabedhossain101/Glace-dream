@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 // import { products } from '@/constants/products';
 import { Heart, ShoppingCart } from 'lucide-react';
+import Link from "next/link";
 import { useFavorites } from '@/context/FavoriteContext';
 import OrderModal from '@/components/OrderModal';
 
@@ -39,7 +40,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
-
+      <Navbar />
       {/* Product Details Section (Banner Area) */}
       <section className="max-w-6xl mx-auto mt-10 p-4 md:p-10 bg-white rounded-3xl shadow-sm flex flex-col md:row gap-12 items-center">
         <div className="flex-1 bg-[#F3F4F6] rounded-3xl relative w-full group">
@@ -107,6 +108,11 @@ export default function HomePage() {
             >
               <ShoppingCart className="w-5 h-5" /> অর্ডার করুন
             </button>
+            <Link href="/checkout" className="flex-[1.5]">
+              <button className="w-full bg-[#FF5A3D] text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-200 hover:bg-[#e84e32] transition">
+                <ShoppingCart className="w-5 h-5" /> অর্ডার করুন
+              </button>
+            </Link>
             <button className="flex-1 border-2 border-gray-100 py-4 rounded-xl font-bold text-lg text-[#1A1A1A] hover:bg-gray-50 transition">
               কার্টে যোগ করুন
             </button>

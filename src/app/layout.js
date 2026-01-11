@@ -26,8 +26,6 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <FavoriteProvider>
-
-        <Navbar></Navbar>
         {children}
         </FavoriteProvider>
       </body>

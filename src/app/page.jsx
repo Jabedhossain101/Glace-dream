@@ -2,19 +2,28 @@
 import { useState, useEffect } from 'react';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { useFavorites } from '@/context/FavoriteContext';
-import OrderModal from '@/components/OrderModal';
+import { useCart } from '@/context/CartContext';
+import OrderModal from '@/components/OrderModal'; 
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  
   const { favorites, toggleFavorite } = useFavorites();
+  const { addToCart } = useCart();
 
   // Reset quantity when product changes
+  // Reset quantity and selections when product changes
   useEffect(() => {
     setQuantity(1);
+    setSelectedSize(null);
+    setSelectedColor(null);
   }, [selectedProduct?.id]);
 
   useEffect(() => {
@@ -42,7 +51,31 @@ export default function HomePage() {
     return <div className="min-h-screen flex items-center justify-center text-gray-500">No products available. Check back later!</div>;
   }
 
-  const isFavorite = favorites.some(item => item.id === selectedProduct.id);
+   const isFavorite = favorites.some(item => item.id === selectedProduct.id);
+
+   const handleAddToCart = () => {
+    if (selectedProduct.sizes?.length > 0 && !selectedSize) {
+      alert('Please select a size');
+      return;
+    }
+    if (selectedProduct.colors?.length > 0 && !selectedColor) {
+        alert('Please select a color');
+        return;
+    }
+    addToCart(selectedProduct, quantity, selectedSize, selectedColor);
+  };
+
+   const handleBuyNow = () => {
+    if (selectedProduct.sizes?.length > 0 && !selectedSize) {
+      alert('Please select a size');
+      return;
+    }
+    if (selectedProduct.colors?.length > 0 && !selectedColor) {
+        alert('Please select a color');
+        return;
+    }
+    setIsModalOpen(true);
+   };
 
   return (
     <main className="min-h-screen bg-white pb-20">
@@ -50,7 +83,7 @@ export default function HomePage() {
       {/* Product Details Section (Banner Area) */}
       <section className="max-w-6xl mx-auto mt-6 md:mt-10 p-4 md:p-10 bg-white rounded-3xl shadow-sm flex flex-col md:flex-row gap-8 md:gap-12 items-center">
         {/* Left Side - Image */}
-        <div className="flex-1 bg-[#F3F4F6] rounded-3xl relative w-full group h-[300px] md:h-[500px] flex items-center justify-center">
+        <div className="flex-1 bg-[#F3F4F6] rounded-3xl relative w-full group flex flex-col justify-center p-6 md:p-10">
           <span className="absolute top-4 md:top-6 left-4 md:left-6 bg-[#FF5A3D] text-white px-3 py-1 rounded-full text-xs md:text-sm font-bold z-10 transition-transform hover:scale-105">
             -{selectedProduct.discount}
           </span>
@@ -64,42 +97,127 @@ export default function HomePage() {
               }`}
             />
           </button>
-          <img
-            src={selectedProduct.image}
-            alt={selectedProduct.name}
-            className="w-full h-full object-contain mix-blend-multiply p-8 md:p-12 transition-transform duration-500 hover:scale-105"
-          />
+          <div className="flex flex-col gap-4">
+               {/* Main Image */}
+              <div className="relative w-full h-[300px] md:h-[500px] flex items-center justify-center p-4">
+                  <img
+                     src={selectedProduct?.activeImage || selectedProduct?.image}
+                     alt={selectedProduct?.name}
+                     className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
+                   />
+              </div>
+
+               {/* Thumbnails */}
+               {selectedProduct?.images?.length > 0 && (
+                   <div className="flex gap-2 justify-center pb-4 px-4 overflow-x-auto">
+                       <button
+                           onClick={() => setSelectedProduct(prev => ({ ...prev, activeImage: selectedProduct.image }))}
+                           className={`w-16 h-16 border rounded-lg overflow-hidden flex-shrink-0 ${(!selectedProduct.activeImage || selectedProduct.activeImage === selectedProduct.image) ? 'border-[#FF5A3D] ring-2 ring-[#FF5A3D]/20' : 'border-gray-200 hover:border-[#FF5A3D]'}`}
+                       >
+                           <img src={selectedProduct.image} className="w-full h-full object-cover" />
+                       </button>
+                       {selectedProduct.images.map((img, idx) => (
+                           <button
+                               key={idx}
+                               onClick={() => setSelectedProduct(prev => ({ ...prev, activeImage: img }))}
+                               className={`w-16 h-16 border rounded-lg overflow-hidden flex-shrink-0 ${selectedProduct.activeImage === img ? 'border-[#FF5A3D] ring-2 ring-[#FF5A3D]/20' : 'border-gray-200 hover:border-[#FF5A3D]'}`}
+                           >
+                               <img src={img} className="w-full h-full object-cover" />
+                           </button>
+                       ))}
+                   </div>
+               )}
+          </div>
         </div>
 
         {/* Right Side - Details */}
         <div className="flex-1 space-y-4 md:space-y-6 w-full">
           <div>
-            <p className="text-[#FF5A3D] text-sm font-semibold mb-2">
-              {selectedProduct.category}
-            </p>
+            <div className="flex items-center gap-2 mb-2">
+                <p className="text-[#FF5A3D] text-sm font-semibold">
+                {selectedProduct?.category}
+                </p>
+                {selectedProduct?.type && (
+                    <>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-gray-500 text-sm font-medium bg-gray-100 px-2 py-0.5 rounded">
+                            {selectedProduct.type}
+                        </span>
+                    </>
+                )}
+            </div>
             <h2 className="text-3xl md:text-5xl font-black text-[#1A1A1A] leading-tight">
-              {selectedProduct.name}
+              {selectedProduct?.name}
             </h2>
           </div>
 
           <div className="flex items-center gap-3 md:gap-4">
             <span className="text-3xl md:text-4xl font-black text-[#FF5A3D]">
-              ৳{selectedProduct.price}
+              ৳{selectedProduct?.price}
             </span>
-            <span className="text-lg md:text-xl text-gray-400 line-through font-medium">
-              ৳{selectedProduct.oldPrice}
-            </span>
-            <span className="bg-[#FFEBE8] text-[#FF5A3D] px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-bold">
-              {selectedProduct.discount} ছাড়
-            </span>
+            {selectedProduct?.oldPrice && (
+                <span className="text-lg md:text-xl text-gray-400 line-through font-medium">
+                ৳{selectedProduct.oldPrice}
+                </span>
+            )}
+             {selectedProduct?.discount && (
+                <span className="bg-[#FFEBE8] text-[#FF5A3D] px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-bold">
+                {selectedProduct.discount} ১০% ছাড়
+                </span>
+             )}
           </div>
 
           <p className="text-gray-500 text-sm md:text-base leading-relaxed line-clamp-3 md:line-clamp-none">
-            {selectedProduct.description}
+            {selectedProduct?.description}
           </p>
 
+           {/* Sizes & Colors */}
+           {(selectedProduct?.sizes?.length > 0 || selectedProduct?.colors?.length > 0) && (
+               <div className="space-y-4 py-4 border-t border-gray-100">
+                   {selectedProduct.colors?.length > 0 && (
+                       <div className="flex items-center gap-4">
+                           <span className="text-lg font-bold text-gray-800 min-w-[60px]">Color:</span>
+                           <div className="flex flex-wrap gap-2">
+                               {selectedProduct.colors.map((color, i) => (
+                                   <button 
+                                      key={i} 
+                                      onClick={() => setSelectedColor(color)}
+                                      className={`px-4 py-1.5 border rounded-full text-sm font-semibold transition cursor-pointer
+                                        ${selectedColor === color 
+                                          ? 'bg-[#FF5A3D] text-white border-[#FF5A3D]' 
+                                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-transparent hover:border-gray-200'}`}
+                                   >
+                                       {color}
+                                   </button>
+                               ))}
+                           </div>
+                       </div>
+                   )}
+                   {selectedProduct.sizes?.length > 0 && (
+                       <div className="flex items-center gap-4">
+                           <span className="text-lg font-bold text-gray-800 min-w-[60px]">Size:</span>
+                           <div className="flex flex-wrap gap-2">
+                               {selectedProduct.sizes.map((size, i) => (
+                                   <button 
+                                      key={i} 
+                                      onClick={() => setSelectedSize(size)}
+                                      className={`px-4 py-1.5 border rounded-full text-sm font-semibold transition cursor-pointer
+                                        ${selectedSize === size 
+                                          ? 'bg-[#FF5A3D] text-white border-[#FF5A3D]' 
+                                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-transparent hover:border-gray-200'}`}
+                                   >
+                                       {size}
+                                   </button>
+                               ))}
+                           </div>
+                       </div>
+                   )}
+               </div>
+           )}
+
+
           <div className="flex flex-wrap gap-2 md:gap-3">
-            {selectedProduct.features.map(f => (
+            {selectedProduct?.features?.map(f => (
               <span
                 key={f}
                 className="bg-[#FFF0ED] text-[#FF5A3D] px-3 md:px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold flex items-center gap-1"
@@ -128,12 +246,15 @@ export default function HomePage() {
 
           <div className="flex items-center gap-3 md:gap-4 pt-4">
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={handleBuyNow}
               className="flex-[1.5] bg-[#FF5A3D] text-white py-3 md:py-3.5 rounded-xl font-bold text-base md:text-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-200 hover:bg-[#e84e32] transition active:scale-95"
             >
               <ShoppingCart className="w-5 h-5" /> অর্ডার করুন
             </button>
-            <button className="flex-1 border border-gray-200 py-3 md:py-3.5 rounded-xl font-bold text-base md:text-lg text-[#1A1A1A] hover:bg-gray-50 transition bg-white active:scale-95">
+            <button 
+              onClick={handleAddToCart}
+              className="flex-1 border border-gray-200 py-3 md:py-3.5 rounded-xl font-bold text-base md:text-lg text-[#1A1A1A] hover:bg-gray-50 transition bg-white active:scale-95"
+            >
               কার্টে যোগ করুন
             </button>
           </div>
@@ -281,9 +402,11 @@ export default function HomePage() {
         <p>© 2024 Glace Dream House. সর্বস্বত্ব সংরক্ষিত।</p>
         <p className="mt-1">যেকোনো প্রয়োজনে আমাদের সাথে যোগাযোগ করুন</p>
       </footer>
-      <OrderModal 
+  <OrderModal 
         product={selectedProduct} 
         quantity={quantity}
+        selectedSize={selectedSize}
+        selectedColor={selectedColor}
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
       />

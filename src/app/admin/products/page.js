@@ -155,7 +155,26 @@ export default function ProductsPage() {
                             </div>
                         </div>
                         <h3 className="font-bold text-lg text-gray-800 line-clamp-1 mb-1">{product.name}</h3>
-                        <p className="text-gray-500 text-sm line-clamp-2 mb-4 h-10">{product.description}</p>
+                        <p className="text-gray-500 text-sm line-clamp-2 mb-2 h-10">{product.description}</p>
+                        
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {product.type && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">
+                                    {product.type}
+                                </span>
+                            )}
+                            {product.sizes?.length > 0 && (
+                                <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-md font-medium">
+                                    {product.sizes.length} Sizes
+                                </span>
+                            )}
+                            {product.colors?.length > 0 && (
+                                <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-md font-medium">
+                                    {product.colors.length} Colors
+                                </span>
+                            )}
+                        </div>
+
                         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                             <div className="flex flex-col">
                                 <span className="text-xs text-gray-400 line-through">৳{product.oldPrice}</span>

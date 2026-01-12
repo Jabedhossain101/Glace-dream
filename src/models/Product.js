@@ -6,9 +6,13 @@ const ProductSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   oldPrice: { type: Number },
   discount: { type: String },
-  image: { type: String },
+  image: { type: String }, // Backwards compatibility or main image
+  images: { type: [String] }, // Multiple images
   description: { type: String },
   features: { type: [String] },
+  sizes: { type: [String] },
+  colors: { type: [String] },
+  type: { type: String },
 }, { 
   timestamps: true 
 });
@@ -24,5 +28,10 @@ ProductSchema.set('toJSON', {
     delete ret.__v;
   }
 });
+
+// Force model recompilation in dev to pick up schema changes
+if (process.env.NODE_ENV === 'development') {
+  delete mongoose.models.Product;
+}
 
 export default mongoose.models.Product || mongoose.model('Product', ProductSchema);

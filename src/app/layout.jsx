@@ -2,6 +2,8 @@ import { Geist, Geist_Mono, Tiro_Bangla } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { FavoriteProvider } from "@/context/FavoriteContext";
+import { CartProvider } from "@/context/CartContext";
+import CartDrawer from "@/components/CartDrawer";
 
 
 const geistSans = Geist({
@@ -32,9 +34,11 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${tiroBangla.variable} antialiased`}
       >
         <FavoriteProvider>
-
-        <Navbar></Navbar>
-        {children}
+          <CartProvider>
+            <Navbar></Navbar>
+            {children}
+            <CartDrawer />
+          </CartProvider>
         </FavoriteProvider>
       </body>
     </html>

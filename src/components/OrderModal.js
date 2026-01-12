@@ -1,15 +1,62 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
-export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
+import { locationData } from '@/lib/locationData';
+
+export default function OrderModal({ product, isOpen, onClose, quantity = 1, selectedSize, selectedColor }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: ''
+    division: '',
+    district: '',
+    upazila: '',
+    street: ''
   });
+
+  // Location handling
+  const divisions = Object.keys(locationData);
+  const districts = formData.division ? Object.keys(locationData[formData.division] || {}) : [];
+  const upazilas = (formData.division && formData.district) ? (locationData[formData.division][formData.district] || []) : [];
+
+  const handleDivisionChange = (e) => {
+    setFormData({ 
+        ...formData, 
+        division: e.target.value, 
+        district: '', 
+        upazila: '' 
+    });
+  };
+
+  const handleDistrictChange = (e) => {
+    setFormData({ 
+        ...formData, 
+        district: e.target.value, 
+        upazila: '' 
+    });
+  };
+
+  // Determine delivery charge automatically based on district/upazila input
+  const isInsideDhaka = () => {
+    const d = formData.district?.trim();
+    const u = formData.upazila?.trim();
+    
+    // Check if District is specifically Dhaka
+    if (d === 'ঢাকা') {
+        return true;
+    }
+    
+    // Explicit upazila checks
+    if (['সাভার', 'কেরানীগঞ্জ', 'ধামরাই', 'নবাবগঞ্জ', 'দোহার'].includes(u)) {
+        return true; 
+    }
+
+    return false;
+  };
+
+  const deliveryCharge = isInsideDhaka() ? 60 : 130;
 
   if (!isOpen) return null;
 
@@ -18,18 +65,26 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
     setLoading(true);
 
     try {
+      const fullAddress = `${formData.street}, ${formData.upazila}, ${formData.district}, ${formData.division}`;
+      
       const orderData = {
-        customer: formData,
+        customer: {
+            name: formData.name,
+            phone: formData.phone,
+            address: fullAddress
+        },
         items: [
             {
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 image: product.image,
-                quantity: quantity
+                quantity: quantity,
+                size: selectedSize,
+                color: selectedColor
             }
         ],
-        total: (product.price * quantity) + 60,
+        total: (product.price * quantity) + deliveryCharge,
         status: 'pending'
       };
 
@@ -42,7 +97,7 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
       if (res.ok) {
         alert('অর্ডার সফল হয়েছে! আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।');
         onClose();
-        setFormData({ name: '', phone: '', address: '' });
+        setFormData({ name: '', phone: '', division: '', district: '', upazila: '', street: '' });
       } else {
         alert('দুঃখিত, অর্ডার করতে সমস্যা হয়েছে।');
       }
@@ -56,20 +111,28 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
           <h3 className="text-xl font-bold text-gray-800">অর্ডার কনফার্ম করুন</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           {/* Product Summary */}
-          <div className="flex gap-4 p-4 bg-orange-50 rounded-2xl mb-6 border border-orange-100 items-start">
+          <div className="flex gap-4 p-4 bg-orange-50 rounded-2xl mb-6 border border-orange-100 items-start flex-shrink-0">
             <img src={product.image} alt={product.name} className="w-20 h-20 object-contain bg-white rounded-xl p-2 border border-orange-100" />
             <div className="flex-1">
                 <p className="font-bold text-gray-800 text-sm md:text-base line-clamp-2">{product.name}</p>
+                
+                {(selectedSize || selectedColor) && (
+                    <div className="flex gap-2 text-xs text-gray-600 mt-1">
+                        {selectedSize && <span className="bg-white px-2 py-0.5 rounded border border-orange-100">Size: {selectedSize}</span>}
+                        {selectedColor && <span className="bg-white px-2 py-0.5 rounded border border-orange-100">Color: {selectedColor}</span>}
+                    </div>
+                )}
+
                 <div className="flex justify-between items-end mt-2">
                     <p className="text-gray-500 text-sm">পরিমাণ: <span className="font-bold text-gray-800">{quantity}</span></p>
                     <p className="text-[#FF5A3D] font-black text-lg md:text-xl">৳{(product.price * quantity).toLocaleString()}</p>
@@ -101,16 +164,63 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
             />
           </div>
 
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">বিভাগ</label>
+                <select
+                    required
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF5A3D] transition appearance-none"
+                    value={formData.division}
+                    onChange={handleDivisionChange}
+                >
+                    <option value="">বাছাই করুন</option>
+                    {divisions.map(div => <option key={div} value={div}>{div}</option>)}
+                </select>
+            </div>
+            <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">জেলা</label>
+                <select
+                    required
+                    disabled={!formData.division}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF5A3D] transition appearance-none disabled:opacity-50"
+                    value={formData.district}
+                    onChange={handleDistrictChange}
+                >
+                    <option value="">বাছাই করুন</option>
+                    {districts.map(dist => <option key={dist} value={dist}>{dist}</option>)}
+                </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+             <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">থানা/উপজেলা</label>
+                <select
+                    required
+                    disabled={!formData.district}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF5A3D] transition appearance-none disabled:opacity-50"
+                    value={formData.upazila}
+                    onChange={e => setFormData({ ...formData, upazila: e.target.value })}
+                >
+                    <option value="">বাছাই করুন</option>
+                    {upazilas.map(upz => <option key={upz} value={upz}>{upz}</option>)}
+                </select>
+            </div>
+          </div>
+
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 ml-1">ঠিকানা</label>
+            <label className="text-sm font-semibold text-gray-600 ml-1">বিস্তারিত ঠিকানা</label>
             <textarea
               required
-              placeholder="Ex: হাউজ #১০, রোড #৫, ঢাকা"
-              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF5A3D] transition h-24 resize-none"
-              value={formData.address}
-              onChange={e => setFormData({ ...formData, address: e.target.value })}
+              placeholder="Ex: হাউজ #১০, রোড #৫"
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF5A3D] transition h-20 resize-none"
+              value={formData.street}
+              onChange={e => setFormData({ ...formData, street: e.target.value })}
             />
           </div>
+
+
 
           <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
              <div className="flex justify-between text-sm text-gray-600">
@@ -119,12 +229,12 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1 }) {
              </div>
              <div className="flex justify-between text-sm text-gray-600">
                 <span>ডেলিভারি চার্জ</span>
-                <span className="font-bold">৳৬০</span>
+                <span className="font-bold">৳{deliveryCharge}</span>
              </div>
              <div className="h-px bg-gray-200 my-2"></div>
              <div className="flex justify-between text-base font-black text-gray-800">
                 <span>সর্বমোট</span>
-                <span className="text-[#FF5A3D]">৳{(product.price * quantity + 60).toLocaleString()}</span>
+                <span className="text-[#FF5A3D]">৳{(product.price * quantity + deliveryCharge).toLocaleString()}</span>
              </div>
           </div>
 

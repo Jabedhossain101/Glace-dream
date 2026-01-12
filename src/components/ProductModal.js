@@ -8,30 +8,42 @@ export default function ProductModal({ product, isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    type: '',
     price: '',
     oldPrice: '',
     discount: '',
     description: '',
     image: '',
-    features: '' 
+    images: '',
+    features: '',
+    sizes: '',
+    colors: '' 
   });
 
   useEffect(() => {
     if (product) {
       setFormData({
         ...product,
-        features: Array.isArray(product.features) ? product.features.join(', ') : product.features
+        features: Array.isArray(product.features) ? product.features.join(', ') : product.features,
+        images: Array.isArray(product.images) ? product.images.join('\n') : (product.image || ''),
+        sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : '',
+        colors: Array.isArray(product.colors) ? product.colors.join(', ') : '',
+        type: product.type || ''
       });
     } else {
       setFormData({
         name: '',
         category: '',
+        type: '',
         price: '',
         oldPrice: '',
         discount: '',
         description: '',
         image: '',
-        features: ''
+        images: '',
+        features: '',
+        sizes: '',
+        colors: ''
       });
     }
   }, [product, isOpen]);
@@ -47,7 +59,12 @@ export default function ProductModal({ product, isOpen, onClose, onSave }) {
         ...formData,
         price: Number(formData.price),
         oldPrice: Number(formData.oldPrice),
-        features: formData.features.split(',').map(f => f.trim()).filter(f => f)
+        features: formData.features.split(',').map(f => f.trim()).filter(f => f),
+        sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
+        colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
+        images: formData.images.split('\n').map(i => i.trim()).filter(i => i),
+        // Set primary image to first image in list if not explicitly set, or keep existing logic
+        image: formData.images.split('\n').map(i => i.trim()).filter(i => i)[0] || formData.image
       };
 
       await onSave(payload);
@@ -126,18 +143,49 @@ export default function ProductModal({ product, isOpen, onClose, onSave }) {
                 onChange={e => setFormData({ ...formData, discount: e.target.value })}
                 />
             </div>
+            <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">Type</label>
+                <input
+                type="text"
+                placeholder="e.g. T-Shirt"
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                value={formData.type}
+                onChange={e => setFormData({ ...formData, type: e.target.value })}
+                />
+            </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 ml-1">Image URL</label>
-            <div className="flex gap-2">
+            <label className="text-sm font-semibold text-gray-600 ml-1">Images (one URL per line)</label>
+            <textarea
+              required
+              rows={4}
+              placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none font-mono text-sm"
+              value={formData.images}
+              onChange={e => setFormData({ ...formData, images: e.target.value })}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">Sizes (comma separated)</label>
                 <input
-                required
                 type="text"
-                placeholder="/images/product.jpg"
+                placeholder="S, M, L, XL"
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                value={formData.image}
-                onChange={e => setFormData({ ...formData, image: e.target.value })}
+                value={formData.sizes}
+                onChange={e => setFormData({ ...formData, sizes: e.target.value })}
+                />
+            </div>
+            <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-600 ml-1">Colors (comma separated)</label>
+                <input
+                type="text"
+                placeholder="Red, Blue, Green"
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                value={formData.colors}
+                onChange={e => setFormData({ ...formData, colors: e.target.value })}
                 />
             </div>
           </div>

@@ -17,15 +17,12 @@ export async function GET() {
       if (fs.existsSync(filePath)) {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const products = JSON.parse(fileContent);
-        // Clean up IDs if they conflict or let mongo handle it.
-        // Usually, mongo uses _id. If we want to keep integer IDs, we can, but usually better to let mongo generate _id.
-        // However, for simplicity, we just insert.
         await Product.insertMany(products);
         console.log('Products seeded successfully');
       }
     }
 
-    const products = await Product.find({});
+    const products = await Product.find({}).sort({ createdAt: -1 });
     return NextResponse.json(products);
   } catch (error) {
     console.error('API Error:', error);
@@ -37,10 +34,12 @@ export async function POST(request) {
   try {
     await dbConnect();
     const body = await request.json();
+    console.log("POST /api/products received body:", body);
     
     // We don't need to manually generate ID, MongoDB does it.
     
     const newProduct = await Product.create(body);
+    console.log("Created Product:", newProduct);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {

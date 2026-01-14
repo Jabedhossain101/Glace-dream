@@ -16,11 +16,12 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1, sel
     street: ''
   });
 
-  // Location handling
+  // Derive location lists based on selected parent (Division -> District -> Upazila)
   const divisions = Object.keys(locationData);
   const districts = formData.division ? Object.keys(locationData[formData.division] || {}) : [];
   const upazilas = (formData.division && formData.district) ? (locationData[formData.division][formData.district] || []) : [];
 
+  // Reset district and upazila when division changes
   const handleDivisionChange = (e) => {
     setFormData({ 
         ...formData, 
@@ -30,6 +31,7 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1, sel
     });
   };
 
+  // Reset upazila when district changes
   const handleDistrictChange = (e) => {
     setFormData({ 
         ...formData, 
@@ -38,17 +40,14 @@ export default function OrderModal({ product, isOpen, onClose, quantity = 1, sel
     });
   };
 
-  // Determine delivery charge automatically based on district/upazila input
   const isInsideDhaka = () => {
     const d = formData.district?.trim();
     const u = formData.upazila?.trim();
     
-    // Check if District is specifically Dhaka
     if (d === 'ঢাকা') {
         return true;
     }
     
-    // Explicit upazila checks
     if (['সাভার', 'কেরানীগঞ্জ', 'ধামরাই', 'নবাবগঞ্জ', 'দোহার'].includes(u)) {
         return true; 
     }

@@ -21,7 +21,7 @@ function OrderDetailsModal({ order, isOpen, onClose }) {
           </button>
         </div>
         
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Customer Info */}
             <div>
                 <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -189,13 +189,13 @@ export default function OrdersPage() {
             Real-time updates active
           </p>
         </div>
-        <div className="flex flex-col md:flex-row items-center gap-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
             {/* Status Filter */}
-            <div className="relative">
+            <div className="relative w-full md:w-auto">
                 <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="pl-4 pr-10 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer font-medium text-slate-600"
+                    className="w-full md:w-auto pl-4 pr-10 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer font-medium text-slate-600"
                 >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
@@ -206,12 +206,12 @@ export default function OrdersPage() {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full md:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                     type="text" 
                     placeholder="Search orders..." 
-                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />

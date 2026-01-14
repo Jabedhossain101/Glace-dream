@@ -18,20 +18,21 @@ export default function HomePage() {
   const { favorites, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
 
-  // Reset quantity when product changes
-  // Reset quantity and selections when product changes
-  useEffect(() => {
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product);
     setQuantity(1);
     setSelectedSize(null);
     setSelectedColor(null);
-  }, [selectedProduct?.id]);
+  };
 
   useEffect(() => {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         setProducts(data);
-        if (data.length > 0) setSelectedProduct(data[0]);
+        if (data.length > 0) {
+            handleProductSelect(data[0]);
+        }
         setLoading(false);
       })
       .catch(err => {
@@ -298,7 +299,7 @@ export default function HomePage() {
           {products.map(product => (
             <div
               key={product.id}
-              onClick={() => setSelectedProduct(product)}
+              onClick={() => handleProductSelect(product)}
               className={`min-w-[280px] md:min-w-auto snap-center group relative bg-white p-4 rounded-3xl cursor-pointer transition-all duration-300 ease-in-out
                 ${
                   selectedProduct.id === product.id
@@ -387,7 +388,7 @@ export default function HomePage() {
                     <div className="flex text-yellow-400 mb-4 text-sm gap-1">
                         {"★★★★★".split("").map((star, i) => <span key={i}>{star}</span>)}
                     </div>
-                    <p className="text-gray-600 mb-6 italic text-sm md:text-base">"{review.comment}"</p>
+                    <p className="text-gray-600 mb-6 italic text-sm md:text-base">&quot;{review.comment}&quot;</p>
                     <div>
                         <h5 className="font-bold text-gray-800">{review.name}</h5>
                         <p className="text-xs text-gray-400">{review.location}</p>

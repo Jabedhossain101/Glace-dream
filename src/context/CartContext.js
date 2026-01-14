@@ -12,6 +12,7 @@ export function CartProvider({ children }) {
     const savedCart = localStorage.getItem('glace-dream-cart');
     if (savedCart) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCart(JSON.parse(savedCart));
       } catch (e) {
         console.error('Failed to parse cart from local storage', e);
@@ -26,7 +27,7 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, quantity = 1, selectedSize = null, selectedColor = null) => {
     setCart(prevCart => {
-      // Create a unique ID for the item based on product ID and selected attributes
+      // Generate unique cart item ID
       const cartItemId = `${product.id}-${selectedSize || 'nosize'}-${selectedColor || 'nocolor'}`;
       
       const existingItemIndex = prevCart.findIndex(item => item.cartItemId === cartItemId);
@@ -47,7 +48,7 @@ export function CartProvider({ children }) {
         }];
       }
     });
-    setIsCartOpen(true); // Open cart sidebar/drawer when item is added (optional UX choice)
+    setIsCartOpen(true); // Open drawer on add
   };
 
   const removeFromCart = (cartItemId) => {
